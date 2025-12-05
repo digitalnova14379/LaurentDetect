@@ -1,0 +1,19 @@
+---
+title: "Detecting Financial Singularities in AAPL Stock"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Detecting Financial Singularities in AAPL Stock}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(LaurentDetect)
+```

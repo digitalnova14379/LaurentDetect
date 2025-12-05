@@ -1,0 +1,30 @@
+Package: LaurentDetect
+Type: Package
+Title: Detect Financial Singularities Using Laurent Series
+Version: 0.1.0
+Authors@R: person('Votre', 'Abate Ovono Etienne Jospin', email = 'abateetienne18@gmail.com', role = c('aut', 'cre'))
+Description: Implements Laurent series approximation to detect singularities, 
+    shocks, and anomalies in financial time series. The package provides tools 
+    for loading financial data, computing local Laurent approximations, detecting 
+    singularities based on the principal part norm, and visualizing results. 
+    Designed for quantitative finance applications in risk management and market analysis.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Imports: 
+    quantmod,
+    ggplot2,
+    dplyr,
+    tidyr,
+    lubridate,
+    zoo,
+    stats
+Suggests: 
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+URL: https://github.com/votreusername/LaurentDetect
+BugReports: https://github.com/votreusername/LaurentDetect/issues
+
