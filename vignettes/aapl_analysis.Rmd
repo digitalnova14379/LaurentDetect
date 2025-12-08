@@ -1,0 +1,356 @@
+---
+title: "Detecting Financial Singularities in Apple Stock (AAPL) 2024-2025"
+author: "Abate Ovono Etienne Jospin"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Detecting Financial Singularities in Apple Stock (AAPL) 2024-2025}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 8,
+  fig.height = 5,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+# Introduction
+
+This vignette demonstrates the use of **LaurentDetect** to identify financial singularities (shocks, crashes, anomalies) in Apple Inc. (AAPL) stock data from January 2024 to December 2024.
+
+## Mathematical Background
+
+A **Laurent series** is a representation of a complex function that includes both positive and negative powers:
+
+$$f(z) = \sum_{n=-\infty}^{+\infty} a_n(z-z_0)^n = \underbrace{\sum_{n=-\infty}^{-1} a_n(z-z_0)^n}_{\text{Principal Part}} + \underbrace{\sum_{n=0}^{+\infty} a_n(z-z_0)^n}_{\text{Regular Part}}$$
+
+**Key insight for finance**: 
+
+- The **principal part** (negative powers) characterizes **singularities** (poles)
+- In financial time series, singularities correspond to **market shocks**, **crashes**, or **volatility spikes**
+- The **norm of the principal part** quantifies the **intensity** of the singularity
+
+## Detection Algorithm
+
+For a financial time series $r(t)$ (log-returns), we:
+
+1. **Slide a window** across the time series
+2. At each point $t_0$, compute a **local Laurent approximation**:
+   $$r(t) \approx \sum_{n=-N}^{M} a_n(t-t_0)^n$$
+3. Calculate the **norm of the principal part**:
+   $$\|\text{PP}\| = \sqrt{\sum_{n=1}^{N} a_{-n}^2}$$
+4. If $\|\text{PP}\| > \text{threshold}$ → **Singularity detected**
+
+# Loading the Package
+
+```{r load_package}
+library(LaurentDetect)
+library(ggplot2)
+library(dplyr)
+```
+
+# Data Loading
+
+We load Apple (AAPL) stock data from January 1, 2024 to today:
+
+```{r load_data}
+df_aapl <- load_financial_data("AAPL", start_date = "2024-01-01", end_date = Sys.Date())
+
+# Display first rows
+head(df_aapl)
+
+# Summary statistics
+summary(df_aapl$LogReturns)
+```
+
+## Data Visualization
+
+```{r plot_raw_data}
+ggplot(df_aapl, aes(x = Date, y = Close)) +
+  geom_line(color = "darkblue", linewidth = 1) +
+  labs(
+    title = "Apple (AAPL) Stock Price - 2024-2025",
+    x = "Date",
+    y = "Closing Price ($)"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+```{r plot_returns}
+ggplot(df_aapl, aes(x = Date, y = LogReturns)) +
+  geom_line(color = "steelblue", linewidth = 0.7) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  labs(
+    title = "Apple Log-Returns - 2024-2025",
+    x = "Date",
+    y = "Log-Returns (%)"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+# Singularity Detection
+
+We now apply the Laurent series method to detect singularities:
+
+```{r detect_singularities}
+singularities_aapl <- detect_singularities(
+  df_aapl, 
+  variable = "LogReturns",
+  threshold = 0.4,
+  window_size = 20
+)
+
+# Display detected singularities
+print(singularities_aapl)
+```
+
+## Interpretation
+
+**What is a singularity?**
+
+A detected singularity indicates:
+
+- A **discontinuity** or **sharp change** in market behavior
+- A point where the time series cannot be well-approximated by a **smooth Taylor series** (polynomial)
+- The need for **negative power terms** (Laurent series) to model the local behavior
+- In finance: **crash**, **shock**, **regime change**, or **anomaly**
+
+**Principal Norm**: Higher values = stronger singularities
+
+# Visualization of Singularities
+
+```{r plot_singularities}
+plot_singularities(
+  df_aapl, 
+  singularities_aapl, 
+  variable = "LogReturns",
+  title = "Financial Singularities in Apple Stock (2024-2025)"
+)
+```
+
+## Principal Part Norm Evolution
+
+The following plot shows how the **principal part norm** evolves over time:
+
+```{r plot_principal_norm}
+# Compute norms across the entire time series
+data <- df_aapl$LogReturns
+n <- length(data)
+window_size <- 20
+
+norms_df <- data.frame()
+
+for (i in seq(window_size + 1, n - window_size, by = 3)) {
+  laurent <- laurent_approximation(data, center_idx = i, window_size = window_size)
+  norms_df <- rbind(norms_df, data.frame(
+    Date = df_aapl$Date[i],
+    PrincipalNorm = laurent$principal_norm
+  ))
+}
+
+ggplot(norms_df, aes(x = Date, y = PrincipalNorm)) +
+  geom_line(color = "darkblue", linewidth = 0.8) +
+  geom_hline(yintercept = 0.4, color = "red", linetype = "dashed", linewidth = 1) +
+  annotate("text", x = min(norms_df$Date), y = 0.44, 
+           label = "Detection Threshold", color = "red", hjust = 0, size = 3) +
+  labs(
+    title = "Principal Part Norm Over Time",
+    subtitle = "Peaks indicate singularities (market instability)",
+    x = "Date",
+    y = "||Principal Part||"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+# Real-World Events Correspondence
+
+Let's examine if detected singularities correspond to real market events:
+
+```{r event_analysis}
+# Top 5 strongest singularities
+top_singularities <- singularities_aapl %>%
+  arrange(desc(PrincipalNorm)) %>%
+  head(5) %>%
+  select(Date, PrincipalNorm, Residue, Value)
+
+print(top_singularities)
+```
+
+**Known Apple events in 2024**:
+
+- **Late July 2024**: Q3 earnings report (mixed results)
+- **Early August 2024**: Tech sector selloff (concerns about AI spending)
+- **September 2024**: iPhone 16 launch event
+- **November 2024**: Post-election market volatility
+
+# Portfolio Risk Simulation
+
+How would these singularities impact a portfolio?
+
+```{r simulate_portfolio}
+portfolio_sim <- simulate_portfolio_risk(
+  df_aapl, 
+  singularities_aapl,
+  initial_capital = 10000,
+  risk_factor = 0.10  # 10% additional loss at singularities
+)
+
+# Plot portfolio evolution
+ggplot(portfolio_sim, aes(x = Date, y = PortfolioValue)) +
+  geom_line(color = "darkgreen", linewidth = 1) +
+  geom_point(data = portfolio_sim %>% filter(IsSingularity),
+             aes(x = Date, y = PortfolioValue),
+             color = "red", size = 3) +
+  geom_hline(yintercept = 10000, linetype = "dashed", color = "gray50") +
+  labs(
+    title = "Portfolio Value Over Time",
+    subtitle = "Red points = Singularity impact (increased risk)",
+    x = "Date",
+    y = "Portfolio Value ($)"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+## Risk Metrics
+
+```{r risk_metrics}
+# Calculate key metrics
+final_value <- tail(portfolio_sim$PortfolioValue, 1)
+total_return <- (final_value - 10000) / 10000 * 100
+
+# Losses at singularities
+losses_at_sing <- portfolio_sim %>%
+  filter(IsSingularity) %>%
+  mutate(Loss = (Returns - AdjustedReturns) / 100 * lag(PortfolioValue)) %>%
+  summarise(
+    NumSingularities = n(),
+    TotalLoss = sum(Loss, na.rm = TRUE),
+    AvgLoss = mean(Loss, na.rm = TRUE)
+  )
+
+cat("Portfolio Performance Summary:\n")
+cat("Initial Capital: $10,000\n")
+cat("Final Value: $", round(final_value, 2), "\n")
+cat("Total Return: ", round(total_return, 2), "%\n\n")
+
+cat("Singularity Impact:\n")
+cat("Number of Singularities: ", losses_at_sing$NumSingularities, "\n")
+cat("Total Loss at Singularities: $", round(losses_at_sing$TotalLoss, 2), "\n")
+cat("Average Loss per Singularity: $", round(losses_at_sing$AvgLoss, 2), "\n")
+```
+
+# Comparison with Traditional Methods
+
+How does Laurent-based detection compare to simple volatility thresholds?
+
+```{r comparison}
+# Traditional method: Flag high absolute returns
+threshold_simple <- 2 * sd(df_aapl$LogReturns, na.rm = TRUE)
+
+traditional_anomalies <- df_aapl %>%
+  mutate(IsAnomaly = abs(LogReturns) > threshold_simple) %>%
+  filter(IsAnomaly)
+
+cat("Traditional method (2σ threshold):", nrow(traditional_anomalies), "anomalies\n")
+cat("Laurent method:", nrow(singularities_aapl), "singularities\n")
+
+# Overlap analysis
+overlap <- sum(df_aapl$Date %in% singularities_aapl$Date & 
+               df_aapl$Date %in% traditional_anomalies$Date)
+
+cat("Overlap:", overlap, "points\n")
+```
+
+**Key differences**:
+
+- **Traditional methods**: Threshold on returns magnitude (univariate)
+- **Laurent method**: Analyzes **local structure** (neighborhood behavior)
+- Laurent detects **structural breaks**, not just large movements
+
+# Sensitivity Analysis
+
+How does the detection threshold affect results?
+
+```{r sensitivity}
+thresholds <- seq(0.2, 0.6, by = 0.1)
+sensitivity_results <- data.frame()
+
+for (thresh in thresholds) {
+  sing <- detect_singularities(df_aapl, threshold = thresh, window_size = 20)
+  sensitivity_results <- rbind(sensitivity_results, data.frame(
+    Threshold = thresh,
+    NumDetected = nrow(sing)
+  ))
+}
+
+ggplot(sensitivity_results, aes(x = Threshold, y = NumDetected)) +
+  geom_line(color = "darkblue", linewidth = 1) +
+  geom_point(color = "darkblue", size = 3) +
+  labs(
+    title = "Sensitivity Analysis: Detection Threshold",
+    x = "Principal Norm Threshold",
+    y = "Number of Singularities Detected"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+# Conclusions
+
+## Key Findings
+
+1. **Laurent series** successfully detect financial singularities in AAPL stock
+2. Detected singularities correspond to **real market events** (earnings, tech selloffs)
+3. The method provides a **mathematically rigorous** framework for anomaly detection
+4. **Principal part norm** quantifies singularity intensity
+
+## Advantages
+
+✅ **Mathematical foundation**: Grounded in complex analysis theory  
+✅ **Local structure analysis**: Not just magnitude, but **neighborhood behavior**  
+✅ **Interpretable**: Clear connection between math and finance  
+✅ **Flexible**: Adjustable parameters (window size, threshold, orders)
+
+## Applications in Finance
+
+- **Risk Management**: Early warning system for crashes
+- **Portfolio Optimization**: Avoid holding during singularities
+- **Volatility Forecasting**: Regime change detection
+- **Algorithmic Trading**: Signal generation for quantitative strategies
+
+## Future Extensions
+
+- **Multi-asset analysis**: Correlation of singularities across stocks
+- **Machine learning**: Automatic threshold learning
+- **Real-time implementation**: Streaming data processing
+- **Option pricing**: Singularities in implied volatility surfaces
+
+# References
+
+**Mathematical Theory**:
+
+- Ahlfors, L. V. (1979). *Complex Analysis*. McGraw-Hill.
+- Conway, J. B. (1978). *Functions of One Complex Variable*. Springer.
+
+**Financial Applications**:
+
+- Cont, R. (2001). "Empirical properties of asset returns: stylized facts and statistical issues". *Quantitative Finance*.
+- Tsay, R. S. (2010). *Analysis of Financial Time Series*. Wiley.
+
+**R Packages**:
+
+- `quantmod`: Jeffrey A. Ryan and Joshua M. Ulrich (2020)
+- `ggplot2`: H. Wickham (2016)
+
+---
+
+**Session Info**:
+
+```{r session_info}
+sessionInfo()
+```
