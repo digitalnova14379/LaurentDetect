@@ -5,7 +5,7 @@ LaurentDetect
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/votreusername/LaurentDetect/workflows/R-CMD-check/badge.svg)](https://github.com/votreusername/LaurentDetect/actions)
+[![R-CMD-check](https://github.com/votreusername/LaurentDetect/workflows/R-CMD-check/badge.svg)](https://github.com/digitalnova14379/LaurentDetect/actions)
 [![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
@@ -69,7 +69,7 @@ $$\text{If} \quad \|\text{Principal Part}\| = \sqrt{\sum_{n=1}^{N} a_{-n}^2} > \
 install.packages("devtools")
 
 # Install LaurentDetect
-devtools::install_github("votreusername/LaurentDetect")
+devtools::install_github("digitalnova14379/LaurentDetect")
 ```
 
 ### Dependencies
@@ -384,11 +384,11 @@ This project is licensed under the MIT License - see the
 
 ## 📧 Contact
 
-**Author**: \[Votre Nom\]  
-**Email**: <votre.email@example.com>  
+**Author**: \[Abate Ovono Etienne Jospin\]  
+**Email**: <abateetienne18@gmail.com>  
 **LinkedIn**:
-[linkedin.com/in/votreprofil](https://linkedin.com/in/votreprofil)  
-**GitHub**: [@votreusername](https://github.com/votreusername)
+[linkedin.com/in/votreprofil](https:https://www.linkedin.com/in/etienne-jospin-abate-ovono-b914b1379?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app)  
+**GitHub**: [@votreusername](https://github.com/digitalnova14379)
 
 ------------------------------------------------------------------------
 
@@ -427,13 +427,13 @@ This project is licensed under the MIT License - see the
 ## 📊 Project Stats
 
 ![GitHub repo
-size](https://img.shields.io/github/repo-size/votreusername/LaurentDetect)
+size](https://img.shields.io/github/repo-size/digitalnova14379/LaurentDetect)
 ![GitHub
-stars](https://img.shields.io/github/stars/votreusername/LaurentDetect)
+stars](https://img.shields.io/github/stars/digitalnova14379/LaurentDetect)
 ![GitHub
-forks](https://img.shields.io/github/forks/votreusername/LaurentDetect)
+forks](https://img.shields.io/github/forks/digitalnova14379/LaurentDetect)
 ![GitHub
-issues](https://img.shields.io/github/issues/votreusername/LaurentDetect)
+issues](https://img.shields.io/github/digitalnova14379/LaurentDetect)
 
 ------------------------------------------------------------------------
 
